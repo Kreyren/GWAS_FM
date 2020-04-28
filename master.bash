@@ -1,3 +1,53 @@
+#!/bin/sh
+# Refactored by Jacob Hrbek <kreyren@member.fsf.org> under GPLv3 license <https://www.gnu.org/licenses/gpl-3.0.en.html> as a part of https://github.com/gitpod-io/gitpod/issues/1447
+
+
+###! Does something
+###! ABSTRACT:
+###! - Get relevant files
+###!  - biobank.ctsu.ox.ac.uk/crystal/crystal/docs/UKBioBiLallfreqSNPexclude.dat
+###!  - biobank.ctsu.ox.ac.uk/crystal/crystal/auxdata/ukb_imp_mfi.tgz
+###!  - biobank.ctsu.ox.ac.uk/crystal/crystal/auxdata/ukb_snp_qc.
+###!  - http://ngs.sanger.ac.uk/production/hrc/HRC.r1-1/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz
+###! - 
+
+die() {
+	case "$1" in
+		1) printf '%s\n' "$2" ;;
+		255) printf '%s\n' "Unexpected happend while $2" ;;
+		*) printf '%s\n' "Unexpected argument '$1' has been parsed in die() function"; exit 2
+	esac
+
+	exit "$1"
+}
+
+helperFetcher() {
+	if [ ! -f "$HOME/$myName/$1" ]; then 
+		wget "$2" -O "$HOME/$myName/$1" || die 1 "Unable to get file $1 from url $2, assuming dead link"
+	elif [ -f "$HOME/$myName/$1" ]; then 
+		true
+	else
+		die 255 "caching $1 from $2"
+	fi
+}
+
+# Cache relevant files
+## Cache UKBioBiLallfreqSNPexclude.dat file, http://biobank.ctsu.ox.ac.uk/crystal/refer.cgi?id=976
+helperFetcher UKBioBiLallfreqSNPexclude.dat https://biobank.ctsu.ox.ac.uk/crystal/crystal/docs/UKBioBiLallfreqSNPexclude.dat 
+
+## Cache ukb_imp_mfi.tgz, http://biobank.ctsu.ox.ac.uk/crystal/refer.cgi?id=1967
+helperFetcher ukb_imp_mfi.tgz https://biobank.ctsu.ox.ac.uk/crystal/crystal/auxdata/ukb_imp_mfi.tgz
+
+## Cache ukb_snp_qc., http://biobank.ctsu.ox.ac.uk/crystal/refer.cgi?id=1955
+helperFetcher ukb_snp_qc. https://biobank.ctsu.ox.ac.uk/crystal/crystal/auxdata/ukb_snp_qc.
+
+## Cache .wgs.mac5.sites.tab.gz
+helperFetcher HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz http://ngs.sanger.ac.uk/production/hrc/HRC.r1-1/HRC.r1-1.GRCh37.wgs.mac5.sites.tab.gz
+
+
+
+# ---
+
 mkdir /scratch/vivek22/UKB
 mkdir /scratch/vivek22/UKB/geno
 mkdir /scratch/vivek22/FM_UKB
